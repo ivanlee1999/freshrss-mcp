@@ -457,7 +457,65 @@ async def freshrss_unsubscribe(params: UnsubscribeParams) -> Dict[str, Any]:
 
 def main():
     """Run the MCP server."""
-    mcp.run()
+    import sys
+    
+    # Check for transport argument
+    transport = "stdio"  # default
+    port = 8000  # default port for HTTP
+    
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--http":
+            transport = "streamable-http"
+            print(f"🚀 Starting FreshRSS MCP Server on http://localhost:{port}")
+            print("📡 Available endpoints:")
+            print(f"   • WebSocket: ws://localhost:{port}/ws")
+            print(f"   • Health: http://localhost:{port}/health")
+            print("📋 MCP Tools: 13 tools available for FreshRSS management")
+            print("🔧 Configure in Claude Desktop with WebSocket URL")
+        elif sys.argv[1] == "--sse":
+            transport = "sse"
+            print(f"🚀 Starting FreshRSS MCP Server with SSE on port {port}")
+        elif sys.argv[1] == "--stdio":
+            transport = "stdio"
+            print("🚀 Starting FreshRSS MCP Server with stdio transport")
+        elif sys.argv[1] in ["-h", "--help"]:
+            print("FreshRSS MCP Server")
+            print("Usage:")
+            print("  freshrss-mcp [--http|--sse|--stdio]")
+            print("  freshrss-mcp --http    # HTTP transport on port 8000")
+            print("  freshrss-mcp --sse     # Server-Sent Events transport")
+            print("  freshrss-mcp --stdio   # Standard I/O transport (default)")
+            return
+    
+    # Configure logging level
+    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+    logging.getLogger().setLevel(getattr(logging, log_level, logging.INFO))
+    
+    if transport == "streamable-http":
+        # For HTTP transport, we need to set up the server differently
+        import uvicorn
+        
+        # Create the HTTP app
+        app = mcp.streamable_http_app()
+        
+        # Show startup logs
+        logger.info(f"🚀 FreshRSS MCP Server starting on http://localhost:{port}")
+        logger.info("📋 13 MCP tools loaded for FreshRSS management")
+        
+        uvicorn.run(
+            app, 
+            host="localhost", 
+            port=port, 
+            log_level=log_level.lower(),
+            access_log=True
+        )
+    elif transport == "stdio":
+        if len(sys.argv) > 1 and sys.argv[1] == "--stdio":
+            logger.info("🚀 FreshRSS MCP Server starting with stdio transport")
+        mcp.run(transport=transport)
+    else:
+        logger.info(f"🚀 FreshRSS MCP Server starting with {transport} transport")
+        mcp.run(transport=transport)
 
 
 if __name__ == "__main__":

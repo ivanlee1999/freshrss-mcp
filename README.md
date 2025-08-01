@@ -25,6 +25,8 @@ pip install freshrss-mcp
 ```bash
 git clone https://github.com/yourusername/freshrss-mcp.git
 cd freshrss-mcp
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .
 ```
 
@@ -44,16 +46,82 @@ FRESHRSS_API_PASSWORD=your-api-password
 1. Enable API access in FreshRSS Settings → Authentication
 2. Set an API password in your Profile settings
 
+## Running the Server
+
+### Transport Modes
+
+The FreshRSS MCP server supports multiple transport protocols:
+
+#### 1. Stdio Mode (Default - for Claude Desktop)
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Run with stdio transport (silent, for MCP clients)
+freshrss-mcp
+
+# Or explicitly
+freshrss-mcp --stdio
+```
+
+#### 2. HTTP Mode (for web integration)
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Run streamable HTTP server on port 8000
+freshrss-mcp --http
+```
+
+**Output:**
+```
+INFO:freshrss_mcp.server:🚀 FreshRSS MCP Server starting on http://localhost:8000
+INFO:freshrss_mcp.server:📋 13 MCP tools loaded for FreshRSS management
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+```
+
+**Available endpoints:**
+- 🌐 **HTTP**: `http://localhost:8000`
+- 🔌 **WebSocket**: `ws://localhost:8000/ws`
+- ❤️ **Health Check**: `http://localhost:8000/health`
+
+#### 3. Server-Sent Events Mode
+```bash
+freshrss-mcp --sse
+```
+
+#### 4. Help
+```bash
+freshrss-mcp --help
+```
+
 ### Claude Desktop Configuration
 
+#### For Stdio Mode (Recommended)
 Add the FreshRSS MCP server to your Claude Desktop configuration:
 
 ```json
 {
   "mcpServers": {
     "freshrss": {
-      "command": "python",
-      "args": ["-m", "freshrss_mcp.server"],
+      "command": "freshrss-mcp",
+      "env": {
+        "FRESHRSS_URL": "https://your-freshrss-instance.com",
+        "FRESHRSS_EMAIL": "your-email@example.com",
+        "FRESHRSS_API_PASSWORD": "your-api-password"
+      }
+    }
+  }
+}
+```
+
+#### For HTTP Mode
+```json
+{
+  "mcpServers": {
+    "freshrss": {
+      "command": "freshrss-mcp",
+      "args": ["--http"],
       "env": {
         "FRESHRSS_URL": "https://your-freshrss-instance.com",
         "FRESHRSS_EMAIL": "your-email@example.com",
@@ -244,6 +312,31 @@ await freshrss_star_article({
 
 ## Development
 
+### Quick Start in Virtual Environment
+
+```bash
+# Clone and setup
+git clone https://github.com/yourusername/freshrss-mcp.git
+cd freshrss-mcp
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install in development mode
+pip install -e .
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your FreshRSS credentials
+
+# Test the installation
+python test_direct.py
+
+# Run HTTP server
+freshrss-mcp --http
+```
+
 ### Running Tests
 
 ```bash
@@ -257,6 +350,22 @@ This project uses Black for code formatting and Ruff for linting:
 ```bash
 black src/
 ruff check src/
+```
+
+### Development Commands
+
+```bash
+# Test all transport modes
+freshrss-mcp --help
+freshrss-mcp --stdio    # For MCP clients
+freshrss-mcp --http     # HTTP server on port 8000
+freshrss-mcp --sse      # Server-Sent Events
+
+# Test API client directly
+python test_direct.py
+
+# Install development dependencies
+pip install -e ".[dev]"
 ```
 
 ## API Implementation
