@@ -1,0 +1,1 @@
+"""Tests for FreshRSS MCP server."""
