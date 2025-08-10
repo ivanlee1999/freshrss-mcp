@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  freshrss-mcp:
+    build: .
+    container_name: freshrss-mcp
+    environment:
+      - FRESHRSS_API_URL=${FRESHRSS_API_URL:-https://demo.freshrss.org}
+      - FRESHRSS_API_USER=${FRESHRSS_API_USER:-demo}
+      - FRESHRSS_API_PASSWORD=${FRESHRSS_API_PASSWORD:-demodemo}
+      - MCP_TRANSPORT=${MCP_TRANSPORT:-stdio}
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
