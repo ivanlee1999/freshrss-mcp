@@ -46,6 +46,7 @@ pytest.ini
 
 # Documentation
 *.md
+!README.md
 docs/
 LICENSE
 
