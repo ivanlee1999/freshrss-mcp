@@ -502,9 +502,12 @@ def main():
         logger.info(f"🚀 FreshRSS MCP Server starting on http://localhost:{port}")
         logger.info("📋 13 MCP tools loaded for FreshRSS management")
         
+        # Use 0.0.0.0 when running in Docker to allow external connections
+        host = "0.0.0.0" if os.getenv("DOCKER_CONTAINER", "").lower() == "true" else "localhost"
+        
         uvicorn.run(
             app, 
-            host="localhost", 
+            host=host, 
             port=port, 
             log_level=log_level.lower(),
             access_log=True
